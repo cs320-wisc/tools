@@ -1,9 +1,10 @@
-import logging, os, json, requests, yaml
+import logging, os, json, requests
+from easydict import EasyDict as edict
 
 logging.getLogger().setLevel(logging.INFO)
 
-with open("config.yaml", "r") as f:
-    config = yaml.safe_load(f)
+with open("graderconfig.json", "r", encoding="utf-8") as f:
+    conf = edict(json.load(f))
 
 try:
     with open("canvas.cred") as f:
@@ -13,7 +14,7 @@ except:
 
 
 def cget(url):
-    url = f"https://canvas.wisc.edu/api/v1/courses/{config['course_id']}/{url}"
+    url = f"https://canvas.wisc.edu/api/v1/courses/{conf.COURSE_ID}/{url}"
     logging.info(f"GET, url: {url}")
     r = requests.get(url, headers={"Authorization": "Bearer " + cred})
     r.raise_for_status()
@@ -30,7 +31,7 @@ def cpost(url, payload):
 
 
 def cput(url, data):
-    url = f"https://canvas.wisc.edu/api/v1/courses/{config['course_id']}/{url}"
+    url = f"https://canvas.wisc.edu/api/v1/courses/{conf.COURSE_ID}/{url}"
     logging.info(f"PUT, url: {url}")
     headers = {"Content-Type": "application/json", "Authorization": "Bearer " + cred}
     r = requests.put(url, headers=headers, data=json.dumps(data))

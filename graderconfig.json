@@ -13,5 +13,7 @@
   "FORCE_FILENAME": "main.ipynb",
   "TEST_CMD": "python3 tester.py",
   "RESULT_FILE": "results.json",
-  "TIMEOUT": 180
+  "TIMEOUT": 180,
+  "COURSE_ID": 272598,
+  "SEMESTER": "f21"
 }

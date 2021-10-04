@@ -183,11 +183,10 @@ class Grader(Database):
                         self.put_submission(
                             "/".join(s3path.split("/")[:-1] + ["test.json"]), result
                         )
+                        # Send Canvas notification
+                        send_notification(info.netid, info.date, new_score, project_id)
                 else:
                     logging.info(f"Did not upload results, running in safe mode")
-
-                # Send Canvas notification
-                send_notification(info.netid, info.date, new_score)
 
         self.close()
 
