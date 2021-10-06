@@ -1,5 +1,5 @@
 import os, json, logging
-from util import cget, cpost
+from canvas_util import cget, cpost
 from easydict import EasyDict as edict
 
 # Import the Canvas class
