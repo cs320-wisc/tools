@@ -20,10 +20,15 @@ canvas = Canvas(API_URL, API_KEY)
 
 
 def send_notification(netid, date, score, project_id):
+    students = []
     if not os.path.exists("users.json"):
-        r = cget("users")
+        for i in range(1, 30):
+            r = cget(f"users?enrollment_type=student&page={i}&per_page=100")
+            if len(r) == 0:
+                break
+            students.extend(r)
         with open("users.json", "w") as f:
-            json.dump(r, f)
+            json.dump(students, f)
 
     id = None
     name = None
