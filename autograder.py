@@ -149,6 +149,7 @@ class Grader(Database):
             for s3path in sorted(submissions):
                 logging.info("========================================")
                 logging.info(s3path)
+                info = self.parse_s3path(s3path)
 
                 try:
                     # Setup environment
@@ -166,7 +167,6 @@ class Grader(Database):
                     self.log_result(result)
 
                 except Exception as e:
-                    info = self.parse_s3path(s3path)
                     logging.exception(
                         f"FATAL: Submission from {info.netid}, dated {info.date} "
                         f"was skipped due to following error"

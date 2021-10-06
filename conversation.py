@@ -29,7 +29,8 @@ def send_notification(netid, date, score, project_id):
     name = None
     email = None
 
-    users = json.loads("users.json")
+    with open(r"users.json", "r") as read_file:
+        users = json.load(read_file)
     for user in users:
         if user["integration_id"].lower() == netid:
             id = user["id"]
@@ -39,7 +40,8 @@ def send_notification(netid, date, score, project_id):
 
     payload = {
         "recipients": [str(id)],
-        "body": f"Hello {name}, auto grader gave score {score} to your CSE 320 submission made at {date}. Please check your score here: https://tyler.caraza-harter.com/cs320/{conf.SEMESTER}/code_review.html?project_id={project_id}&student_email={email}&submission_id={date}",
+        "subject": f"CSE 320 - Auto Grader Gave Score {score} to Your {project_id}",
+        "body": f"Hello {name}, auto grader gave score {score} to your CSE 320 submission made at {date}. Please check your score here: https://tyler.caraza-harter.com/cs320/{conf.SEMESTER}/code_review.html?project_id={project_id}&student_email={email.lower()}&submission_id={date.strftime('%Y-%m-%d_%H-%M-%S')}",
     }
     r = cpost("conversations", payload)
     logging.info(f"Received response {r} from Canvas API")
