@@ -1,4 +1,4 @@
-import os, sys, json, copy, math
+import os, sys, json, copy, math, pytz
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict as ddict
 
@@ -29,8 +29,10 @@ class Grades:
 
         with open(f"snapshot/{COURSE}/config.json") as f:
             deadlines = json.load(f)["deadlines"]
-        # end of day (add 24 hours)
-        self.deadline = datetime.strptime(deadlines[project], "%m/%d/%y").astimezone(tz=timezone.utc) + timedelta(days=1)
+        # end of day + 1 hour slack (add 25 hours)
+        deadline = datetime.strptime(deadlines[project], "%m/%d/%y")
+        deadline = pytz.timezone("US/Central").localize(deadline).astimezone(tz=timezone.utc)
+        self.deadline = deadline + timedelta(hours=25)
 
         with open(f"snapshot/{COURSE}/roster.json") as f:
             net_ids = {row['net_id'] for row in json.load(f) if row['enrolled']}
