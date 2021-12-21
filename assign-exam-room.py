@@ -1,5 +1,10 @@
 import os, sys, json
+import hashlib
 import pandas as pd
+
+# https://newbedev.com/disable-hash-randomization-from-within-python-program
+def hash(s):
+    return int(hashlib.sha512(bytes(s, "utf-8")).hexdigest(), 16)
 
 def main():
     with open("rooms.json") as f:
@@ -26,6 +31,8 @@ def main():
         chosen_room["students"] += 1
         assignments[email] = chosen_room["name"]
     print(rooms)
+    with open("student_to_room.json", "w") as f:
+        json.dump(assignments, f, indent=2)
 
     # gen messages
     emails = [{"to": email, "subject": "Final Exam Location",
