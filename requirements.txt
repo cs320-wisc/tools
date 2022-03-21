@@ -4,4 +4,4 @@ requests
 pandas
 easydict
 tqdm
-
+canvasapi
