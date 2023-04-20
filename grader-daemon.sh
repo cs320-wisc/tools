@@ -14,23 +14,27 @@ run_grader() {
     export AWS_SHARED_CREDENTIALS_FILE="~/.aws/credentials"
 
     echo "Running Auto-grader"
-    echo "\nAuto-grader fpr P6:"
-    python3 autograder.py p6 ? -ff main.ipynb -rf result.json
+    echo "\nAuto-grader for P7:"
+    python3 autograder.py p7 ? -ff main.py -tc "python3 tester.py main test2" -rf results.json
+    
+    echo "Running Auto-grader"
+    echo "\nAuto-grader for P6:"
+    python3 autograder.py p6 ? -ff p6.ipynb
 
     echo "\nAuto-grader for P5:"
-    python3 autograder.py p5 ? -ff land.py
+    python3 autograder.py p5 ? -ff p5.zip
 
     echo "\nAuto-grader for P4:"
-    python3 autograder.py p4 ? -ff main.py
+    python3 autograder.py p4 ? -ff p4.zip -rf results.json
 
     echo "\nAuto-grader for P3:"
-    python3 autograder.py p3 ? -ff p3.zip
+    python3 autograder.py p3 ? -ff scrape.py
 
     echo "\nAuto-grader for P2:"
-    python3 autograder.py p2 ? -ff bus.py
+    python3 autograder.py p2 ? -ff p2.zip
 
     echo "\nAuto-grader for P1:"
-    python3 autograder.py p1 ? --test-cmd "python3 test.py" --result-file result.json
+    python3 autograder.py p1 ? -ff p1.ipynb
 }
 
 ntpdate -s time.nist.gov

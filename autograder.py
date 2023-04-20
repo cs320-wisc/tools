@@ -70,10 +70,13 @@ class Grader(Database):
         if is_zipfile(full_path):
             with ZipFile(full_path, "r") as zip_ref:
                 zip_ref.extractall(directory)
+                submission_filename = submission_filename.replace(".zip", ".ipynb") # TODO: workaround with zip force file
         return directory, submission_filename
 
+    # image is the name of the docker you built
+    # docker build -t grader2 .
     def run_test_in_docker(
-        self, code_dir, image="grader", cwd="/code", submission_fname=None
+        self, code_dir, project_id, image="grader2", cwd="/code", submission_fname=None
     ):
         """Run tests in a detached container with attached volume code_dir
         and working directory cdw. Wait timeout seconds for container, then
@@ -83,7 +86,7 @@ class Grader(Database):
 
         # Run in docker container
         t0 = time.time()
-        if submission_fname:
+        if project_id != "p7" and project_id != "p4" and submission_fname:
             cmd = self.conf.TEST_CMD + " " + submission_fname
         else:
             cmd = self.conf.TEST_CMD
@@ -91,6 +94,7 @@ class Grader(Database):
         container = client.containers.run(
             image, cmd, detach=True, volumes=shared_dir, working_dir=cwd
         )
+        # user=1001
         logging.info(f"CONTAINER {container.id}")
 
         try:
@@ -146,6 +150,7 @@ class Grader(Database):
                 rerun=self.conf.OVERWRITE or self.conf.KEEPBEST,
                 email=self.netid,
             )
+            # print(submissions)
             for s3path in sorted(submissions):
                 logging.info("========================================")
                 logging.info(s3path)
@@ -159,11 +164,12 @@ class Grader(Database):
                     code_dir, submission_fname = self.extract_if_zip(
                         code_dir, submission_fname
                     )
+                    
                     project_dir = f"../{self.conf.SEMESTER}/{project_id}/"
                     self.setup_codedir(project_dir, code_dir)
 
                     # Run tests in docker and save results
-                    result = self.run_test_in_docker(code_dir, submission_fname)
+                    result = self.run_test_in_docker(code_dir, project_id, submission_fname=submission_fname)
                     self.log_result(result)
 
                 except Exception as e:
@@ -177,14 +183,21 @@ class Grader(Database):
                 logging.info(f"Score: {new_score}")
 
                 if not self.conf.SAFE:
-                    if self.conf.KEEPBEST and new_score < self.fetch_results(s3path):
-                        logging.info(f"Skipped {s3path} because better grade exists")
-                    else:
+                    prev_score = self.fetch_results(s3path)
+                    if prev_score is None or not self.conf.KEEPBEST or new_score >= prev_score:
+                        # report score
                         self.put_submission(
                             "/".join(s3path.split("/")[:-1] + ["test.json"]), result
                         )
+                    else:
+                        logging.info(f"Skipped {s3path} score reporting")
+
+                    if prev_score is None or new_score > prev_score:
                         # Send Canvas notification
                         send_notification(info.netid, info.date, new_score, project_id)
+                        pass
+                    else:
+                        logging.info(f"Skipped {s3path} canvas notification")
                 else:
                     logging.info(f"Did not upload results, running in safe mode")
 
@@ -259,14 +272,14 @@ if __name__ == "__main__":
         "--overwrite",
         action="store_true",
         default=argparse.SUPPRESS,
-        help="rerun grader and overwrite any existing results.",
+        help="overwrite any existing results.",
     )
     rerun_group.add_argument(
         "-k",
         "--keepbest",
         action="store_true",
         default=argparse.SUPPRESS,
-        help="rerun grader, only update result if better.",
+        help="only update result if better.",
     )
     parser.add_argument(
         "-sf",
@@ -315,6 +328,13 @@ if __name__ == "__main__":
         type=str,
         default=argparse.SUPPRESS,
         help="name of file the testing code generates",
+    )
+    parser.add_argument(
+        "-rr",
+        "--rerun",
+        type=str,
+        default=argparse.SUPPRESS,
+        help="rerun all submissions",
     )
 
     grader_args = parser.parse_args()
